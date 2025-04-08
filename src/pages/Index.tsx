@@ -6,13 +6,27 @@ import Footer from "@/components/Footer";
 import YouTubeUrlInput from "@/components/YouTubeUrlInput";
 import RecipeCard from "@/components/RecipeCard";
 import LoadingState from "@/components/LoadingState";
+import ApiKeyInput from "@/components/ApiKeyInput";
 import { toast } from "sonner";
+import { ChefHat } from "lucide-react";
 
 const Index = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [recipe, setRecipe] = useState<RecipeData | null>(null);
+  const [apiKey, setApiKey] = useState<string>("");
+
+  const handleApiKeyChange = (key: string) => {
+    setApiKey(key);
+  };
 
   const handleProcessUrl = async (url: string) => {
+    if (!apiKey) {
+      toast.error("OpenAI API key is required", {
+        description: "Please add your OpenAI API key first",
+      });
+      return;
+    }
+
     setIsProcessing(true);
     setRecipe(null);
     
@@ -21,13 +35,13 @@ const Index = () => {
         description: "This might take a minute or two.",
       });
       
-      const recipeData = await processYouTubeUrl(url);
+      const recipeData = await processYouTubeUrl(url, apiKey);
       setRecipe(recipeData);
       toast.success("Recipe created successfully!");
     } catch (error) {
       console.error("Error processing URL:", error);
       toast.error("Failed to process video", {
-        description: "Please check the URL and try again.",
+        description: "Please check the URL and API key, then try again.",
       });
     } finally {
       setIsProcessing(false);
@@ -49,6 +63,10 @@ const Index = () => {
           </p>
         </div>
 
+        <div className="flex flex-col items-center justify-center mb-6">
+          <ApiKeyInput onApiKeyChange={handleApiKeyChange} />
+        </div>
+
         <div className="flex justify-center mb-12">
           <YouTubeUrlInput onSubmit={handleProcessUrl} isProcessing={isProcessing} />
         </div>
@@ -59,7 +77,7 @@ const Index = () => {
           <RecipeCard recipe={recipe} />
         ) : (
           <div className="flex flex-col items-center justify-center py-12 text-center max-w-md mx-auto">
-            <ChefHatIcon className="h-16 w-16 text-muted mb-4" />
+            <ChefHat className="h-16 w-16 text-muted mb-4" />
             <h3 className="text-xl font-medium mb-2">No recipe generated yet</h3>
             <p className="text-muted-foreground">
               Enter a YouTube cooking video URL above to get started.
@@ -73,22 +91,5 @@ const Index = () => {
     </div>
   );
 };
-
-// Icon component for the empty state
-const ChefHatIcon = ({ className }: { className?: string }) => (
-  <svg 
-    xmlns="http://www.w3.org/2000/svg" 
-    viewBox="0 0 24 24" 
-    fill="none" 
-    stroke="currentColor" 
-    strokeWidth="2" 
-    strokeLinecap="round" 
-    strokeLinejoin="round" 
-    className={className}
-  >
-    <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
-    <line x1="6" y1="17" x2="18" y2="17"></line>
-  </svg>
-);
 
 export default Index;

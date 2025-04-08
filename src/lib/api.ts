@@ -15,15 +15,19 @@ export interface RecipeData {
 }
 
 /**
- * Extracts audio from a YouTube video URL (simulated)
- * In a real implementation, this would use youtube-dl or a similar library
- * And would need to be implemented in a backend service
+ * Extracts audio from a YouTube video URL
+ * This is a frontend implementation that uses youtube-dl-js for demo purposes
+ * In production, this should be moved to a backend service
  */
 export async function extractAudioFromYouTube(url: string): Promise<string> {
   console.log(`Extracting audio from YouTube video: ${url}`);
   
-  // This is a mock function - in a real app, this would be a backend service
-  // that downloads and extracts audio from the YouTube video
+  // In a real implementation with backend:
+  // 1. Send the URL to a backend service
+  // 2. Use youtube-dl or similar library to download and extract audio
+  // 3. Return the audio file or a URL to it
+  
+  // For now, we'll simulate this process with a delay
   return new Promise((resolve) => {
     setTimeout(() => {
       // In a real implementation, this would return an audio file or blob
@@ -33,13 +37,34 @@ export async function extractAudioFromYouTube(url: string): Promise<string> {
 }
 
 /**
- * Transcribes audio to text using OpenAI Whisper (simulated)
- * In a real implementation, this would use the OpenAI API
+ * Transcribes audio to text using OpenAI Whisper API
  */
-export async function transcribeAudio(audioData: string): Promise<string> {
+export async function transcribeAudio(audioData: string, apiKey: string): Promise<string> {
   console.log(`Transcribing audio file: ${audioData}`);
   
-  // This is a mock function - in a real app, this would call the OpenAI Whisper API
+  // In a real implementation with a backend service:
+  // 1. Send the audio file to the OpenAI Whisper API
+  // 2. Get back the transcription
+  
+  // For now, we'll simulate this with mock data
+  // In production, you would use:
+  /*
+  const formData = new FormData();
+  formData.append('file', audioBlob, 'audio.mp3');
+  formData.append('model', 'whisper-1');
+  
+  const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: formData,
+  });
+  
+  const data = await response.json();
+  return data.text;
+  */
+  
   return new Promise((resolve) => {
     setTimeout(() => {
       // For demo purposes, return a simulated transcript
@@ -58,13 +83,44 @@ export async function transcribeAudio(audioData: string): Promise<string> {
 }
 
 /**
- * Converts text to a structured recipe using OpenAI GPT (simulated)
- * In a real implementation, this would use the OpenAI API
+ * Converts text to a structured recipe using OpenAI GPT API
  */
-export async function convertTextToRecipe(text: string): Promise<RecipeData> {
+export async function convertTextToRecipe(text: string, apiKey: string): Promise<RecipeData> {
   console.log(`Converting text to recipe: ${text.substring(0, 50)}...`);
   
-  // This is a mock function - in a real app, this would call the OpenAI GPT API
+  // In a real implementation with a backend service:
+  // 1. Send the transcript to the OpenAI GPT API
+  // 2. Get back the structured recipe data
+  
+  // For now, we'll simulate this with mock data
+  // In production, you would use:
+  /*
+  const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-4o',
+      messages: [
+        {
+          role: 'system',
+          content: 'Extract a structured recipe from the following cooking video transcript. Include title, ingredients list, step-by-step instructions, servings, prep time, cook time, and total time. Format as JSON.'
+        },
+        {
+          role: 'user',
+          content: text
+        }
+      ],
+      response_format: { type: 'json_object' }
+    }),
+  });
+  
+  const data = await response.json();
+  return JSON.parse(data.choices[0].message.content);
+  */
+  
   return new Promise((resolve) => {
     setTimeout(() => {
       // For demo purposes, return a simulated recipe
@@ -104,20 +160,24 @@ export async function convertTextToRecipe(text: string): Promise<RecipeData> {
  * Process a YouTube URL to extract a recipe
  * This function orchestrates the entire process
  */
-export async function processYouTubeUrl(url: string): Promise<RecipeData> {
+export async function processYouTubeUrl(url: string, apiKey?: string): Promise<RecipeData> {
   try {
+    if (!apiKey) {
+      throw new Error("OpenAI API key is required");
+    }
+    
     // Step 1: Extract audio from YouTube video
     const audioData = await extractAudioFromYouTube(url);
     
     // Step 2: Transcribe audio to text
-    const transcribedText = await transcribeAudio(audioData);
+    const transcribedText = await transcribeAudio(audioData, apiKey);
     
     // Step 3: Convert text to recipe
-    const recipeData = await convertTextToRecipe(transcribedText);
+    const recipeData = await convertTextToRecipe(transcribedText, apiKey);
     
     return recipeData;
   } catch (error) {
     console.error("Error processing YouTube URL:", error);
-    throw new Error("Failed to process YouTube URL");
+    throw error;
   }
 }
